@@ -17,7 +17,6 @@ import benjaminv_isabel.app.salasmart.ui.theme.SalaSmartTheme
 import kotlin.getValue
 
 class MainActivity : ComponentActivity() {
-<<<<<<< HEAD
   
     private val taskViewModel: ModeloSmartSala by viewModels {
       ModeloSmartSalaFactory(SmartSalaBD.obtenerBD(this).smartSalaDao())
