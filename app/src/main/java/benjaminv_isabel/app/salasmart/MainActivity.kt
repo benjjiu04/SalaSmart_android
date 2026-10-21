@@ -17,7 +17,7 @@ import benjaminv_isabel.app.salasmart.ui.theme.SalaSmartTheme
 import kotlin.getValue
 
 class MainActivity : ComponentActivity() {
-  
+
     private val taskViewModel: ModeloSmartSala by viewModels {
       ModeloSmartSalaFactory(SmartSalaBD.obtenerBD(this).smartSalaDao())
     }
@@ -28,28 +28,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             SalaSmartTheme {
                 Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SalaSmartTheme {
-        Greeting("Android")
     }
 }
