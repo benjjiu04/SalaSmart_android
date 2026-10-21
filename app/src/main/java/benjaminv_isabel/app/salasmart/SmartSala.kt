@@ -9,7 +9,7 @@ import androidx.room.Room
 @Database(entities = [Sala::class], version = 1, exportSchema = false)
 abstract class SmartSalaBD: RoomDatabase() {
 
-  abstract fun smartSalaDao(): Sala
+  abstract fun smartSalaDao(): SalaDao
   companion object{
 
     @Volatile
