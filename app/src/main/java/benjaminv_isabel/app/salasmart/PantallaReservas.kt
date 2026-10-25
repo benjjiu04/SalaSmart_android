@@ -55,6 +55,23 @@ fun <T>obtenerDatosAsientos(condicion: String?, valorCondicion: T?): ApiAsientos
   return null
 
 }
+
+fun <T>obtenerDatosReservas(condicion: String?, valorCondicion: T?): ApiReserva?{
+  var baseUrlApi = "https://6ade43dc4e88f1bba4a511a9.mockapi.io/registro_reservas/reservas"
+
+  if (condicion != null && valorCondicion != null){
+    baseUrlApi += "?$condicion=$valorCondicion"
+  }
+
+  val dataPeticion = PeticionHttp.get(baseUrlApi)
+  val datosReserva = Json.decodeFromString<ApiReserva>(dataPeticion.respuestaBody)
+
+  if (dataPeticion.estatusPeticion.valor in 200..299){
+    return datosReserva
+  }
+
+  return null
+}
 @Composable
 fun PantallaReservas(
     modifier: Modifier = Modifier,
