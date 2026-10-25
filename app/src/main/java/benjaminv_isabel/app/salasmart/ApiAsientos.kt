@@ -1,4 +1,4 @@
-package benjaminv_isabel.app.salasmart;
+package benjaminv_isabel.app.salasmart
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -10,7 +10,7 @@ import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-object LocalDateSerializer : KSerializer<LocalDate>{
+private object LocalDateSerializer : KSerializer<LocalDate>{
   // Define el formato exacto en el que viene tu String de fecha en el JSON
   private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
@@ -39,5 +39,5 @@ data class ApiAsientos(
   @Serializable(LocalDateSerializer::class)
   val fechaReserva: LocalDate?,
 
-  val id: Long,
+  val id: Long? = null,
 )
