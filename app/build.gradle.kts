@@ -46,12 +46,17 @@ dependencies {
   implementation("androidx.room:room-runtime:$room_version")
   ksp("androidx.room:room-compiler:$room_version")
   implementation("androidx.room:room-ktx:$room_version")
-
+  implementation("androidx.compose.material:material-icons-core")
+  implementation("androidx.compose.runtime:runtime-livedata")
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.lifecycle.runtime.ktx)
+  implementation("androidx.navigation:navigation-compose:2.8.5")
+  implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+  implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
+
   testImplementation(libs.junit)
   androidTestImplementation(platform(libs.androidx.compose.bom))
   androidTestImplementation(libs.androidx.compose.ui.test.junit4)
