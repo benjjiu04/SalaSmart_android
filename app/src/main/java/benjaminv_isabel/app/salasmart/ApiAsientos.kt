@@ -35,9 +35,9 @@ data class ApiAsientos(
   val numeroAsiento: String,
   val estado: String,
   val reservadoPor: String?,
-
+  
   @Serializable(LocalDateSerializer::class)
-  val fechaReserva: LocalDate,
+  val fechaReserva: LocalDate?,
 
   val id: Long,
 )
