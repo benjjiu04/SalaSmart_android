@@ -89,7 +89,9 @@ class PeticionHttp {
       cliente.newCall(peticionPost).execute().use { response ->
 
        val respuestaBody = when (response.code) {
-
+         /*cuando los rango sean entre 200 y 299 no se imprimirá un mensaje personalizado,
+          ya que haria que el enum sea enorme.
+          se guardará el codigo en el enum para poder saber que codigo de estatus tuvo la peticion.*/
          in 200..299 -> {
            val codigoEstatus = EstatusHttp.buscarCodigo(response.code) ?: EstatusHttp.Created
            codigoEstatus.guardarBodyJson(response.body.string())
