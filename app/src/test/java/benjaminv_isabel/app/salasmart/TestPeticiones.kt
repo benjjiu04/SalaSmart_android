@@ -30,7 +30,6 @@ class TestPeticiones {
     println(mensajePeticion)
     println(miPeticion.respuestaBody)
   }
-
   @Test
   fun deserializacionApiReserva(){
 
@@ -39,5 +38,13 @@ class TestPeticiones {
 
     println("id: ${datosPeticion.id}")
     assertEquals(datosPeticion.id, "1")
+  }
+
+  @Test
+  fun metodoDeleteCorrecto(){
+    val peticion = PeticionHttp.delete("https://6ade43dc4e88f1bba4a511a9.mockapi.io/registro_reservas/reservas", 1)
+    println(peticion.respuestaBody)
+    println("codigo de estatus: ${peticion.estatusPeticion.valor}")
+    assertEquals(peticion.estatusPeticion.valor, 200)
   }
 }
