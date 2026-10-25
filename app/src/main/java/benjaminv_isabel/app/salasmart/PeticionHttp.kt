@@ -104,7 +104,7 @@ class PeticionHttp {
          EstatusHttp.ServiceUnavailable.valor -> throw Exception(EstatusHttp.ServiceUnavailable.mensaje)
          EstatusHttp.UnauthorizedError.valor -> throw Exception(EstatusHttp.UnauthorizedError.mensaje)
          else -> {
-           val errorBody = response.body.string() ?: "sin cuerpo"
+           val errorBody = response.body.string()
            throw Exception("? error desconocido. codigo de error ${response.code} - $errorBody")
          }
        }
