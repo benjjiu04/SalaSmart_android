@@ -41,7 +41,7 @@ fun <T>obtenerDatosAsientos(condicion: String?, valorCondicion: T?): ApiAsientos
 
   //si la condicion ni el valor de la condicion es nula, los datos serán filtados.
   if (condicion != null && valorCondicion != null){
-    baseUrlApi += "/$condicion=$valorCondicion"
+    baseUrlApi += "?$condicion=$valorCondicion"
 
   }
 
