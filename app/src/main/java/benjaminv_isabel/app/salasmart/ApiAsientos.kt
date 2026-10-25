@@ -33,9 +33,9 @@ object LocalDateSerializer : KSerializer<LocalDate>{
 @Serializable
 data class ApiAsientos(
   val numeroAsiento: String,
-  val estado: String,
+  val estaDisponible: Boolean,
   val reservadoPor: String?,
-  
+
   @Serializable(LocalDateSerializer::class)
   val fechaReserva: LocalDate?,
 
