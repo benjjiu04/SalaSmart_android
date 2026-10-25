@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 private val Azul = Color(0xFF1E3A8A)
 private val Celeste = Color(0xFF3B82F6)
@@ -30,6 +32,29 @@ private val Verde = Color(0xFF16A34A)
 private val Rojo = Color(0xFFDC2626)
 private val Fondo = Color(0xFFF3F4F6)
 
+//funcion para obtener los datos de los asientos segun el estado, id, etc.
+//la 'T' es un tipo generico para poder poner cual tipo de dato: string, int, etc.
+
+fun <T>obtenerDatosAsientos(condicion: String?, valorCondicion: T?): ApiAsientos? {
+
+  var baseUrlApi = "https://6add56c1fa5e73d4ab2df12a.mockapi.io/asientos/registro_asientos"
+
+  //si la condicion ni el valor de la condicion es nula, los datos serán filtados.
+  if (condicion != null && valorCondicion != null){
+    baseUrlApi += "/$condicion=$valorCondicion"
+
+  }
+
+  val resultadoPeticion = PeticionHttp.get(baseUrlApi)
+
+  //regresa un data class con los datos de los asientos si es que la peticion fue un 'ok'...
+  if (resultadoPeticion.estatusPeticion.valor == 200){
+    return Json.decodeFromString<ApiAsientos>(resultadoPeticion.respuestaBody)
+  }
+  //...de lo contrario, regresa null.
+  return null
+
+}
 @Composable
 fun PantallaReservas(
     modifier: Modifier = Modifier,
@@ -39,6 +64,7 @@ fun PantallaReservas(
     onVerAsientos: (Sala) -> Unit = {},
     viewModel: ModeloSmartSala = viewModel()
 ) {
+
     val listaSalas by viewModel.todas_las_salas.observeAsState(initial = emptyList())
 
     Column(modifier = modifier.fillMaxSize().background(Fondo)) {
