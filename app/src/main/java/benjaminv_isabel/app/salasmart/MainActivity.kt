@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                                 estaLogueado = isLoggedIn,
                                 onIrALogin = { navController.navigate(Rutas.LOGIN) },
                                 onCerrarSesion = { isLoggedIn = false },
-                                onVerAsientos = { sala ->
+                                onVerAsientos = { sala: Sala ->
                                     navController.navigate("asientos/${Uri.encode(sala.nombreSala)}")
                                 },
                                 viewModel = taskViewModel
