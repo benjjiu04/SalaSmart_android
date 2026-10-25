@@ -108,7 +108,7 @@ class PeticionHttp {
            throw Exception("? error desconocido. codigo de error ${response.code} - $errorBody")
          }
        }
-        println("${respuestaBody.estatusPeticion.mensaje} - codigo de estatus ${response.code}")
+        println("codigo de estatus: ${response.code}")
         return respuestaBody
       }
     }
