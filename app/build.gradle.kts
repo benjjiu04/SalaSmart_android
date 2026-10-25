@@ -1,6 +1,7 @@
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
+  kotlin("plugin.serialization") version "2.4.21"
   id("com.google.devtools.ksp") //necesario para usar "room"
 }
 
@@ -43,6 +44,8 @@ dependencies {
 
   //implementa la dependencia "room"
   val room_version = "2.8.4"
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+  implementation("com.squareup.okhttp3:okhttp:5.5.1")
   implementation("androidx.room:room-runtime:$room_version")
   ksp("androidx.room:room-compiler:$room_version")
   implementation("androidx.room:room-ktx:$room_version")
