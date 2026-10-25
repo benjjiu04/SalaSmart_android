@@ -108,7 +108,42 @@ class PeticionHttp {
            throw Exception("? error desconocido. codigo de error ${response.code} - $errorBody")
          }
        }
+
         println("codigo de estatus: ${response.code}")
+        return respuestaBody
+      }
+    }
+
+
+    fun delete(URL: String, id: Long): RespuestaHttp{
+
+      val cliente = OkHttpClient.Builder()
+      val urlFiltrada = "$URL/$id"
+
+      val peticionDelete = Request.Builder()
+        .delete()
+        .url(urlFiltrada)
+        .build()
+
+      cliente.build().newCall(peticionDelete).execute().use { response ->
+        val respuestaBody = when(response.code){
+          in 200..299 ->{
+
+            val codigoEstatus = EstatusHttp.buscarCodigo(response.code) ?: EstatusHttp.Ok
+            codigoEstatus.guardarBodyJson(response.body.string())
+          }
+
+          EstatusHttp.NotFound.valor -> throw Exception(EstatusHttp.NotFound.mensaje)
+          EstatusHttp.BadRequest.valor -> throw Exception(EstatusHttp.BadRequest.mensaje)
+          EstatusHttp.Forbidden.valor -> throw Exception(EstatusHttp.Forbidden.mensaje)
+          EstatusHttp.ServiceUnavailable.valor -> throw Exception(EstatusHttp.ServiceUnavailable.mensaje)
+          EstatusHttp.UnauthorizedError.valor -> throw Exception(EstatusHttp.UnauthorizedError.mensaje)
+          else -> {
+            val errorBody = response.body.string()
+            throw Exception("? error desconocido. codigo de error ${response.code} - $errorBody")
+          }
+        }
+
         return respuestaBody
       }
     }
