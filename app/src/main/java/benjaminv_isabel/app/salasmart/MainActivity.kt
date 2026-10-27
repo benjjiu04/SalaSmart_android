@@ -17,6 +17,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import benjaminv_isabel.app.salasmart.ui.theme.SalaSmartTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+
 
 object Rutas {
     const val SALAS = "salas"
@@ -41,13 +45,46 @@ class MainActivity : ComponentActivity() {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var correoActual by remember { mutableStateOf("") }
 
+                var dataAvisos by remember { mutableStateOf<List<ApiAvisos>?>(null) }
+
+
+                LaunchedEffect(Unit) {
+                  try{
+                    val resultadoApi = withContext(Dispatchers.IO) {
+                      DatosApiAvisos.obtenerDatosApiAvisos(null, null)
+
+                    }
+
+                    dataAvisos = resultadoApi
+
+                  }catch (err: Exception){
+                    err.printStackTrace()
+                  }
+                }
+
+                if (dataAvisos == null){
+                  println("no hay ningun aviso.")
+                }
                 // TODO: reemplazar por los datos reales de ApiAvisos de tu compañero
-                val avisos = remember {
-                    listOf(
-                        "Sala de Estudio en mantenimiento" to "Estará cerrada el viernes por la tarde.",
-                        "Nuevo horario de atención" to "El campus abre desde las 7:30 de lunes a viernes.",
-                        "Auditorio Central reservado" to "El miércoles habrá una charla abierta de 10:00 a 12:00."
-                    )
+                val avisos: List<Pair<String, String>> = remember(dataAvisos) {
+
+                  dataAvisos?.mapNotNull { item ->
+
+                    val mensaje = item.mensaje
+                    if (mensaje.isNullOrBlank()) return@mapNotNull null
+
+                    val fechaAviso = item.fechaAviso?.toString() ?: "Sin fecha"
+                    val fechaTermino = item.fechaTermino?.toString() ?: "Sin fecha"
+
+                    var mensajeVigencia = "vigencia del aviso $fechaAviso hasta $fechaTermino"
+
+                    //si la fecha de hoy es mayor a la fecha de termino, se agrega al mensaje que el aviso esta caducado.
+                    if (LocalDate.now() > item.fechaTermino){
+                      mensajeVigencia += "\n\naviso caducado."
+                    }
+                    mensaje to mensajeVigencia
+
+                  } ?: emptyList()
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

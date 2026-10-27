@@ -13,12 +13,15 @@ class DatosApiAsientos{
 
     fun<T> obtenerDatosApiAsientos(condicion: String?, valorCondicion: T?): List<ApiAsientos>?{
 
+      val json = Json{
+        ignoreUnknownKeys = true
+      }
       if (condicion != null && valorCondicion != null){
         val urlFiltro = "$URL?$condicion=$valorCondicion"
 
         val peticionGet = PeticionHttp.get(urlFiltro)
         //debe regresar una lista cuando en el url se pone el '?'
-        val dataApi = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
+        val dataApi = json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
 
         if (peticionGet.estatusPeticion.valor in 200..299) {
           return dataApi
@@ -27,7 +30,7 @@ class DatosApiAsientos{
       }
 
       val peticionGet = PeticionHttp.get(URL)
-      val dataAsientos = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
+      val dataAsientos = json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
 
       if (peticionGet.estatusPeticion.valor in 200..299){
         return dataAsientos

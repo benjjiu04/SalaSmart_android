@@ -7,13 +7,17 @@ class DatosApiAvisos {
   companion object{
     private const val URL: String = "https://6ade43dc4e88f1bba4a511a9.mockapi.io/avisos/registro_avisos"
 
-    fun<T> obtenerDatosApiAvisos(condicion: String?, valorCondicion: T?): List<ApiAvisos>?{
+    fun<T> obtenerDatosApiAvisos(condicion: String? = null, valorCondicion: T? = null): List<ApiAvisos>?{
+      val json = Json{
+        ignoreUnknownKeys = true
+      }
 
       if (condicion != null && valorCondicion != null){
         val urlFiltro = "$URL?$condicion=$valorCondicion"
 
         val peticionGet = PeticionHttp.get(urlFiltro)
-        val dataApi = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
+
+        val dataApi = json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
 
         if (peticionGet.estatusPeticion.valor in 200..299) {
           return dataApi
@@ -23,7 +27,7 @@ class DatosApiAvisos {
       }
 
       val peticionGet = PeticionHttp.get(URL)
-      val dataAsientos = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
+      val dataAsientos = json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
 
       return dataAsientos
     }
