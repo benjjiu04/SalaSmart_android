@@ -29,12 +29,17 @@ private object LocalDateSerializer : KSerializer<LocalDate>{
     encoder.encodeString(string)
   }
 }
-
+@Serializable
+data class DatosUsuario(
+  val nombre: String,
+  val edad: Int
+)
 @Serializable
 data class ApiAsientos(
   val numeroAsiento: String,
   val estaDisponible: Boolean,
-  val reservadoPor: String?,
+  val reservadoPor: DatosUsuario?,
+
 
   @Serializable(LocalDateSerializer::class)
   val fechaReserva: LocalDate?,

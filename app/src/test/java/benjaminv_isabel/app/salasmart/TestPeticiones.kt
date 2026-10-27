@@ -21,7 +21,7 @@ class TestPeticiones {
   @Test
   fun metodoGetCorrecto(){
 
-    val miPeticion = PeticionHttp.get("https://6ade43dc4e88f1bba4a511a9.mockapi.io/registro_reservas/reservas?id=1")
+    val miPeticion = PeticionHttp.get("https://6add56c1fa5e73d4ab2df12a.mockapi.io/asientos/registro_asientos/1")
     val estatusPeticion = miPeticion.estatusPeticion
     val mensajePeticion = miPeticion.estatusPeticion.mensaje
 
