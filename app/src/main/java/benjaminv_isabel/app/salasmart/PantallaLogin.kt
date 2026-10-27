@@ -3,6 +3,7 @@ package benjaminv_isabel.app.salasmart
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -24,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.util.TableInfo
 import kotlinx.coroutines.launch
 
 private val AzulOscuro = Color(0xFF0B1F4D)
@@ -62,25 +65,25 @@ fun PantallaLogin(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Fondo)
-            .verticalScroll(rememberScrollState())
+          .fillMaxSize()
+          .background(Fondo)
+          .verticalScroll(rememberScrollState())
     ) {
         // ---------- ENCABEZADO ----------
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(bottomStart = 56.dp, bottomEnd = 56.dp))
-                .background(Brush.verticalGradient(listOf(AzulOscuro, Azul, AzulBoton)))
-                .padding(top = 48.dp, bottom = 80.dp),
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(bottomStart = 56.dp, bottomEnd = 56.dp))
+              .background(Brush.verticalGradient(listOf(AzulOscuro, Azul, AzulBoton)))
+              .padding(top = 48.dp, bottom = 80.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .size(110.dp)
-                        .clip(CircleShape)
-                        .background(Brush.linearGradient(listOf(Celeste, AzulBoton))),
+                      .size(110.dp)
+                      .clip(CircleShape)
+                      .background(Brush.linearGradient(listOf(Celeste, AzulBoton))),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("💺", fontSize = 56.sp)
@@ -111,9 +114,9 @@ fun PantallaLogin(
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(10.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .offset(y = (-48).dp)
+              .fillMaxWidth()
+              .padding(horizontal = 20.dp)
+              .offset(y = (-48).dp)
         ) {
             Column(Modifier.padding(24.dp)) {
                 Text(
@@ -132,10 +135,11 @@ fun PantallaLogin(
 
                 Spacer(Modifier.height(22.dp))
 
+                //input donde el usuario ingresa su correo.
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it; error = "" },
-                    placeholder = { Text("Correo electrónico") },
+                    placeholder = { Text("Correo electrónico", color = Color.Gray) },
                     leadingIcon = { Text("✉️", fontSize = 20.sp) },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
@@ -143,26 +147,29 @@ fun PantallaLogin(
                         unfocusedBorderColor = BordeCampo,
                         focusedBorderColor = AzulBoton,
                         unfocusedContainerColor = Color(0xFFF8FAFF),
-                        focusedContainerColor = Color(0xFFF8FAFF)
+                        focusedContainerColor = Color(0xFFF8FAFF),
+
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Gray
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(14.dp))
-
+                //input donde el usaurio pone su contraseña.
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it; error = "" },
-                    placeholder = { Text("Contraseña") },
+                    placeholder = { Text("Contraseña", color = Color.Gray) },
                     leadingIcon = { Text("🔒", fontSize = 20.sp) },
                     trailingIcon = {
                         Text(
                             if (verPassword) "🙈" else "👁",
                             fontSize = 20.sp,
                             modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { verPassword = !verPassword }
-                                .padding(8.dp)
+                              .clip(CircleShape)
+                              .clickable { verPassword = !verPassword }
+                              .padding(8.dp)
                         )
                     },
                     visualTransformation = transformacion,
@@ -172,7 +179,10 @@ fun PantallaLogin(
                         unfocusedBorderColor = BordeCampo,
                         focusedBorderColor = AzulBoton,
                         unfocusedContainerColor = Color(0xFFF8FAFF),
-                        focusedContainerColor = Color(0xFFF8FAFF)
+                        focusedContainerColor = Color(0xFFF8FAFF),
+
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Gray
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -182,7 +192,7 @@ fun PantallaLogin(
                     OutlinedTextField(
                         value = confirmar,
                         onValueChange = { confirmar = it; error = "" },
-                        placeholder = { Text("Confirmar contraseña") },
+                        placeholder = { Text("Confirmar contraseña", color = Color.Gray) },
                         leadingIcon = { Text("🔒", fontSize = 20.sp) },
                         visualTransformation = transformacion,
                         singleLine = true,
@@ -191,27 +201,45 @@ fun PantallaLogin(
                             unfocusedBorderColor = BordeCampo,
                             focusedBorderColor = AzulBoton,
                             unfocusedContainerColor = Color(0xFFF8FAFF),
-                            focusedContainerColor = Color(0xFFF8FAFF)
+                            focusedContainerColor = Color(0xFFF8FAFF),
+
+                            //cuando el usuario presiona el input el color es negro, de lo contrario, es gris.
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Gray
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
 
                 if (error.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(error, color = Color(0xFFDC2626), fontSize = 14.sp)
+                    //contenedor del texto de error, centrado.
+                    Column(modifier = Modifier.fillMaxWidth(),
+                      horizontalAlignment = Alignment.CenterHorizontally,
+                      verticalArrangement = Arrangement.Center) {
+
+                        Spacer(Modifier.height(14.dp))
+                        Text(
+                          error,
+                          color = Color(0xFFDC2626),
+                          fontSize = 14.sp,
+                          fontWeight = FontWeight.Bold,
+                          textAlign = TextAlign.End
+                        )
+                      }
                 }
 
                 Spacer(Modifier.height(20.dp))
 
+                //boton paara iniciar sesion.
                 Button(
                     onClick = {
                         val correo = email.trim().lowercase()
+                        //mensajes que se activan al presionar el boton teniendo alguno de los campos en blanco.
                         when {
                             correo.isBlank() || password.isBlank() ->
-                                error = "Completa todos los campos"
+                                error = "Porfavor complete todos los campos"
                             !correo.contains("@") || !correo.contains(".") ->
-                                error = "Ingresa un correo válido"
+                                error = "Porfavor ingrese un correo válido"
                             esRegistro && password.length < 6 ->
                                 error = "La contraseña debe tener al menos 6 caracteres"
                             esRegistro && password != confirmar ->
@@ -233,12 +261,16 @@ fun PantallaLogin(
                     enabled = !cargando,
                     shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulBoton),
-                    modifier = Modifier.fillMaxWidth().height(58.dp)
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .height(58.dp)
                 ) {
                     Text(
                         if (esRegistro) "Crear cuenta  →" else "Iniciar sesión  →",
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+
                     )
                 }
 
@@ -283,8 +315,8 @@ fun PantallaLogin(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .clickable { esRegistro = !esRegistro; error = "" }
-                            .padding(vertical = 4.dp)
+                          .clickable { esRegistro = !esRegistro; error = "" }
+                          .padding(vertical = 4.dp)
                     )
                 }
             }
@@ -293,9 +325,9 @@ fun PantallaLogin(
         // ---------- PIE ----------
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-24).dp)
-                .padding(bottom = 24.dp),
+              .fillMaxWidth()
+              .offset(y = (-24).dp)
+              .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("🎓", fontSize = 30.sp)

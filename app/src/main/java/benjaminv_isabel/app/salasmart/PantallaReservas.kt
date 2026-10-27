@@ -291,7 +291,7 @@ fun TarjetaSala(sala: Sala, ocupados: Int, onClick: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = AzulBoton),
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Ver asientos  →", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text("Ver asientos  →", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }
