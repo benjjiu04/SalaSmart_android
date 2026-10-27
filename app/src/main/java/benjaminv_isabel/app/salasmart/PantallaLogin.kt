@@ -32,10 +32,15 @@ private val Fondo = Color(0xFFF1F5FF)
 private val BordeCampo = Color(0xFFD6E0F5)
 private val TextoGris = Color(0xFF64748B)
 
+// Cuenta de administrador (solo para la demo del curso)
+private const val ADMIN_CORREO = "admin@salasmart.cl"
+private const val ADMIN_CLAVE = "admin123"
+
 @Composable
 fun PantallaLogin(
     onLoginSuccess: () -> Unit,
-    onVolver: () -> Unit = {}
+    onVolver: () -> Unit = {},
+    onAdminLogin: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -200,6 +205,11 @@ fun PantallaLogin(
                                 error = "Completa todos los campos"
                             esRegistro && password != confirmar ->
                                 error = "Las contraseñas no coinciden"
+                            // Inicio de sesión como administrador
+                            !esRegistro &&
+                                    email.trim().lowercase() == ADMIN_CORREO &&
+                                    password == ADMIN_CLAVE ->
+                                onAdminLogin()
                             else -> onLoginSuccess()
                         }
                     },

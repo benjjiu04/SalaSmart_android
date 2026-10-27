@@ -22,6 +22,8 @@ object Rutas {
     const val SALAS = "salas"
     const val LOGIN = "login"
     const val ASIENTOS = "asientos/{sala}"
+    const val ADMIN = "admin"
+    const val AVISOS = "avisos"
 }
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +40,15 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 var isLoggedIn by remember { mutableStateOf(false) }
 
+                // TODO: reemplazar por los datos reales de ApiAvisos de tu compañero
+                val avisos = remember {
+                    listOf(
+                        "Sala de Estudio en mantenimiento" to "Estará cerrada el viernes por la tarde.",
+                        "Nuevo horario de atención" to "El campus abre desde las 7:30 de lunes a viernes.",
+                        "Auditorio Central reservado" to "El miércoles habrá una charla abierta de 10:00 a 12:00."
+                    )
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController,
@@ -49,9 +60,10 @@ class MainActivity : ComponentActivity() {
                                 estaLogueado = isLoggedIn,
                                 onIrALogin = { navController.navigate(Rutas.LOGIN) },
                                 onCerrarSesion = { isLoggedIn = false },
-                                onVerAsientos = { sala: Sala ->
+                                onVerAsientos = { sala ->
                                     navController.navigate("asientos/${Uri.encode(sala.nombreSala)}")
                                 },
+                                onVerAvisos = { navController.navigate(Rutas.AVISOS) },
                                 viewModel = taskViewModel
                             )
                         }
@@ -62,7 +74,12 @@ class MainActivity : ComponentActivity() {
                                     isLoggedIn = true
                                     navController.popBackStack()
                                 },
-                                onVolver = { navController.popBackStack() }
+                                onVolver = { navController.popBackStack() },
+                                onAdminLogin = {
+                                    navController.navigate(Rutas.ADMIN) {
+                                        popUpTo(Rutas.SALAS)
+                                    }
+                                }
                             )
                         }
 
@@ -72,6 +89,25 @@ class MainActivity : ComponentActivity() {
                         ) { entry ->
                             PantallaAsientos(
                                 nombreSala = entry.arguments?.getString("sala") ?: "Sala",
+                                onVolver = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(Rutas.ADMIN) {
+                            PantallaAdmin(
+                                viewModel = taskViewModel,
+                                onVerAvisos = { navController.navigate(Rutas.AVISOS) },
+                                onCerrarSesion = {
+                                    navController.navigate(Rutas.SALAS) {
+                                        popUpTo(Rutas.SALAS) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(Rutas.AVISOS) {
+                            PantallaAvisos(
+                                avisos = avisos,
                                 onVolver = { navController.popBackStack() }
                             )
                         }

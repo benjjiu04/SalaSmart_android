@@ -307,19 +307,6 @@ fun PantallaAsientos(
                 ) {
                     Text("Confirmar reserva", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            dao.liberar(nombreSala)
-                            seleccionados = emptySet()
-                            mensaje = "Sala reiniciada"
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("Liberar todos los asientos (demo)", color = Color.Gray, fontSize = 13.sp)
-                }
             }
         }
     }

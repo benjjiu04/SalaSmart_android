@@ -41,6 +41,7 @@ fun PantallaReservas(
     onIrALogin: () -> Unit = {},
     onCerrarSesion: () -> Unit = {},
     onVerAsientos: (Sala) -> Unit = {},
+    onVerAvisos: () -> Unit = {},
     viewModel: ModeloSmartSala = viewModel()
 ) {
     val listaSalas by viewModel.todas_las_salas.observeAsState(initial = emptyList())
@@ -107,9 +108,21 @@ fun PantallaReservas(
 
                 Spacer(Modifier.height(16.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     ResumenChip("$conCupo salas con cupo", Verde)
                     ResumenChip("$llenas llenas", Rojo)
+                    Spacer(Modifier.weight(1f))
+                    OutlinedButton(
+                        onClick = onVerAvisos,
+                        shape = RoundedCornerShape(50),
+                        border = BorderStroke(1.5.dp, Color.White),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Text("Avisos", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }
