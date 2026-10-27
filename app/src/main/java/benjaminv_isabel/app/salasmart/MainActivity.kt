@@ -9,8 +9,13 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -66,7 +71,7 @@ class MainActivity : ComponentActivity() {
                   println("no hay ningun aviso.")
                 }
                 // TODO: reemplazar por los datos reales de ApiAvisos de tu compañero
-                val avisos: List<Pair<String, String>> = remember(dataAvisos) {
+                val avisos: List<Pair<String, AnnotatedString>> = remember(dataAvisos) {
 
                   dataAvisos?.mapNotNull { item ->
 
@@ -76,14 +81,18 @@ class MainActivity : ComponentActivity() {
                     val fechaAviso = item.fechaAviso?.toString() ?: "Sin fecha"
                     val fechaTermino = item.fechaTermino?.toString() ?: "Sin fecha"
 
-                    var mensajeVigencia = "vigencia del aviso $fechaAviso hasta $fechaTermino"
+                    var mensajeVigencia = buildAnnotatedString {
+                      append("vigencia del aviso $fechaAviso hasta $fechaTermino")
 
-                    //si la fecha de hoy es mayor a la fecha de termino, se agrega al mensaje que el aviso esta caducado.
-                    if (LocalDate.now() > item.fechaTermino){
-                      mensajeVigencia += "\n\naviso caducado."
+                      //si la fecha de hoy es mayor a la fecha de termino, se agrega al mensaje que el aviso esta caducado.
+                      if (LocalDate.now() > item.fechaTermino) {
+                        withStyle(
+                          style = SpanStyle(color = Color(0xFFFF0000))) {
+                            append("\t\taviso caducado.")
+                          }
+                      }
                     }
                     mensaje to mensajeVigencia
-
                   } ?: emptyList()
                 }
 
