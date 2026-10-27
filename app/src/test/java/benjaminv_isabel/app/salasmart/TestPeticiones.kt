@@ -34,7 +34,7 @@ class TestPeticiones {
   fun deserializacionApiReserva(){
 
     val peticion = PeticionHttp.get("https://6ade43dc4e88f1bba4a511a9.mockapi.io/registro_reservas/reservas/1")
-    val datosPeticion = Json.decodeFromString<ApiReserva>(peticion.respuestaBody)
+    val datosPeticion = Json.decodeFromString<ApiAvisos>(peticion.respuestaBody)
 
     println("id: ${datosPeticion.id}")
     assertEquals(datosPeticion.id, "1")
