@@ -13,20 +13,30 @@ class DatosApiAsientos{
 
     fun<T> obtenerDatosApiAsientos(condicion: String?, valorCondicion: T?): List<ApiAsientos>?{
 
-      var urlFiltro = URL
+
       if (condicion != null && valorCondicion != null){
-        urlFiltro = "?$condicion=$valorCondicion"
+        val urlFiltro = "$URL?$condicion=$valorCondicion"
+
+        val peticionGet = PeticionHttp.get(urlFiltro)
+        //debe regresar una lista cuando en el url se pone el '?'
+        val dataApi = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
+
+        if (peticionGet.estatusPeticion.valor in 200..299) {
+          return dataApi
+        }
+        return null
       }
 
-      val peticionGet = PeticionHttp.get(urlFiltro)
-      //debe regresar una lista cuando en el url se pone el '?'
-      val dataApi = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
+      val peticionGet = PeticionHttp.get(URL)
+      val dataAsientos = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
 
-      if (peticionGet.estatusPeticion.valor in 200..299) {
-        return dataApi
+      if (peticionGet.estatusPeticion.valor in 200..299){
+        return dataAsientos
       }
 
       return null
+
+
     }
 
     fun crearDatosApiAsientos(initApiAsientos: ApiAsientos): PeticionHttp.RespuestaHttp {
