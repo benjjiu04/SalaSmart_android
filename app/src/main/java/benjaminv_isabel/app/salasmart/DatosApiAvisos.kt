@@ -9,19 +9,23 @@ class DatosApiAvisos {
 
     fun<T> obtenerDatosApiAvisos(condicion: String?, valorCondicion: T?): List<ApiAvisos>?{
 
-      var urlFiltro = URL
       if (condicion != null && valorCondicion != null){
-        urlFiltro = "?$condicion=$valorCondicion"
+        val urlFiltro = "$URL?$condicion=$valorCondicion"
+
+        val peticionGet = PeticionHttp.get(urlFiltro)
+        val dataApi = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
+
+        if (peticionGet.estatusPeticion.valor in 200..299) {
+          return dataApi
+        }
+
+        return null
       }
 
-      val peticionGet = PeticionHttp.get(urlFiltro)
-      val dataApi = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
+      val peticionGet = PeticionHttp.get(URL)
+      val dataAsientos = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
 
-      if (peticionGet.estatusPeticion.valor in 200..299) {
-        return dataApi
-      }
-
-      return null
+      return dataAsientos
     }
 
     fun crearDatosApiAvisos(initApiAvisos: ApiAvisos): PeticionHttp.RespuestaHttp {

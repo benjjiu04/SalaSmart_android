@@ -13,7 +13,6 @@ class DatosApiAsientos{
 
     fun<T> obtenerDatosApiAsientos(condicion: String?, valorCondicion: T?): List<ApiAsientos>?{
 
-
       if (condicion != null && valorCondicion != null){
         val urlFiltro = "$URL?$condicion=$valorCondicion"
 
@@ -35,7 +34,6 @@ class DatosApiAsientos{
       }
 
       return null
-
 
     }
 
