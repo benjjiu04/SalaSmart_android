@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 private val AzulOscuro = Color(0xFF0B1F4D)
 private val Azul = Color(0xFF1E3A8A)
@@ -38,10 +40,14 @@ private const val ADMIN_CLAVE = "admin123"
 
 @Composable
 fun PantallaLogin(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (String) -> Unit,   // recibe el correo del usuario
     onVolver: () -> Unit = {},
     onAdminLogin: () -> Unit = {}
 ) {
+    val scope = rememberCoroutineScope()
+    val contexto = LocalContext.current
+    val usuarioDao = remember { AsientosBD.obtener(contexto).usuarioDao() }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmar by remember { mutableStateOf("") }
@@ -49,6 +55,7 @@ fun PantallaLogin(
     var verPassword by remember { mutableStateOf(false) }
     var mantener by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(false) }
 
     val transformacion =
         if (verPassword) VisualTransformation.None else PasswordVisualTransformation()
@@ -69,7 +76,6 @@ fun PantallaLogin(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Círculo del logo
                 Box(
                     modifier = Modifier
                         .size(110.dp)
@@ -200,19 +206,31 @@ fun PantallaLogin(
 
                 Button(
                     onClick = {
+                        val correo = email.trim().lowercase()
                         when {
-                            email.isBlank() || password.isBlank() ->
+                            correo.isBlank() || password.isBlank() ->
                                 error = "Completa todos los campos"
+                            !correo.contains("@") || !correo.contains(".") ->
+                                error = "Ingresa un correo válido"
+                            esRegistro && password.length < 6 ->
+                                error = "La contraseña debe tener al menos 6 caracteres"
                             esRegistro && password != confirmar ->
                                 error = "Las contraseñas no coinciden"
-                            // Inicio de sesión como administrador
-                            !esRegistro &&
-                                    email.trim().lowercase() == ADMIN_CORREO &&
-                                    password == ADMIN_CLAVE ->
+                            // Administrador
+                            !esRegistro && correo == ADMIN_CORREO && password == ADMIN_CLAVE ->
                                 onAdminLogin()
-                            else -> onLoginSuccess()
+                            else -> scope.launch {
+                                cargando = true
+                                val problema = if (esRegistro)
+                                    Cuentas.registrar(usuarioDao, correo, password)
+                                else
+                                    Cuentas.iniciar(usuarioDao, correo, password)
+                                if (problema == null) onLoginSuccess(correo) else error = problema
+                                cargando = false
+                            }
                         }
                     },
+                    enabled = !cargando,
                     shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulBoton),
                     modifier = Modifier.fillMaxWidth().height(58.dp)

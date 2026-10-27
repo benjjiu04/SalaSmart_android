@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +39,7 @@ private val TextoGris = Color(0xFF475569)
 fun PantallaReservas(
     modifier: Modifier = Modifier,
     estaLogueado: Boolean = false,
+    correoActual: String = "",
     onIrALogin: () -> Unit = {},
     onCerrarSesion: () -> Unit = {},
     onVerAsientos: (Sala) -> Unit = {},
@@ -57,6 +59,7 @@ fun PantallaReservas(
 
     val llenas = listaSalas.count { estaLlena(it) }
     val conCupo = listaSalas.size - llenas
+    val conPerfil = estaLogueado && correoActual.isNotBlank()
 
     Column(modifier = modifier.fillMaxSize().background(Fondo)) {
 
@@ -70,26 +73,41 @@ fun PantallaReservas(
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.22f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("S", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                    // Perfil: avatar con la inicial, o el logo si no hay sesión
+                    if (conPerfil) {
+                        AvatarUsuario(correoActual, 60.dp)
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.22f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "S", color = Color.White,
+                                fontSize = 30.sp, fontWeight = FontWeight.ExtraBold
+                            )
+                        }
                     }
 
                     Spacer(Modifier.width(14.dp))
 
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "SalaSmart", color = Color.White,
-                            fontSize = 30.sp, fontWeight = FontWeight.ExtraBold
+                            if (conPerfil) "Hola, ${nombreDesdeCorreo(correoActual)}" else "SalaSmart",
+                            color = Color.White,
+                            fontSize = 28.sp, fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            if (estaLogueado) "Sesión iniciada" else "Reserva tu sala en segundos",
-                            color = Color(0xFFE0E7FF), fontSize = 16.sp
+                            when {
+                                conPerfil -> correoActual
+                                estaLogueado -> "Sesión iniciada"
+                                else -> "Reserva tu sala en segundos"
+                            },
+                            color = Color(0xFFE0E7FF), fontSize = 16.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
                     }
 

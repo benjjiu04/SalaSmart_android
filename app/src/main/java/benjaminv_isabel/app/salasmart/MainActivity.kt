@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
             SalaSmartTheme {
                 val navController = rememberNavController()
                 var isLoggedIn by remember { mutableStateOf(false) }
+                var correoActual by remember { mutableStateOf("") }
 
                 // TODO: reemplazar por los datos reales de ApiAvisos de tu compañero
                 val avisos = remember {
@@ -58,8 +59,12 @@ class MainActivity : ComponentActivity() {
                         composable(Rutas.SALAS) {
                             PantallaReservas(
                                 estaLogueado = isLoggedIn,
+                                correoActual = correoActual,
                                 onIrALogin = { navController.navigate(Rutas.LOGIN) },
-                                onCerrarSesion = { isLoggedIn = false },
+                                onCerrarSesion = {
+                                    isLoggedIn = false
+                                    correoActual = ""
+                                },
                                 onVerAsientos = { sala ->
                                     navController.navigate("asientos/${Uri.encode(sala.nombreSala)}")
                                 },
@@ -70,8 +75,9 @@ class MainActivity : ComponentActivity() {
 
                         composable(Rutas.LOGIN) {
                             PantallaLogin(
-                                onLoginSuccess = {
+                                onLoginSuccess = { correo ->
                                     isLoggedIn = true
+                                    correoActual = correo
                                     navController.popBackStack()
                                 },
                                 onVolver = { navController.popBackStack() },
@@ -89,6 +95,7 @@ class MainActivity : ComponentActivity() {
                         ) { entry ->
                             PantallaAsientos(
                                 nombreSala = entry.arguments?.getString("sala") ?: "Sala",
+                                usuario = correoActual,
                                 onVolver = { navController.popBackStack() }
                             )
                         }

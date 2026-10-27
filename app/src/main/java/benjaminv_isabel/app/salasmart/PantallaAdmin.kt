@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -36,12 +37,17 @@ fun PantallaAdmin(
 ) {
     val contexto = LocalContext.current
     val scope = rememberCoroutineScope()
-    val dao = remember { AsientosBD.obtener(contexto).asientoDao() }
+    val bd = remember { AsientosBD.obtener(contexto) }
+    val dao = remember { bd.asientoDao() }
     val asientosLive = remember { dao.observarTodos() }
+    val usuariosLive = remember { bd.usuarioDao().observarTodos() }
 
     val salas by viewModel.todas_las_salas.observeAsState(emptyList())
     val asientos by asientosLive.observeAsState(emptyList())
+    val usuarios by usuariosLive.observeAsState(emptyList())
+
     val porSala = asientos.groupBy { it.sala }
+    val porUsuario = asientos.groupingBy { it.usuario }.eachCount()
 
     var pestana by remember { mutableIntStateOf(0) }
 
@@ -58,10 +64,14 @@ fun PantallaAdmin(
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("Panel de administrador", color = Color.White,
-                            fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("Toda la base de datos de SalaSmart",
-                            color = Color(0xFFE0E7FF), fontSize = 15.sp)
+                        Text(
+                            "Panel de administrador", color = Color.White,
+                            fontSize = 26.sp, fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            "Toda la base de datos de SalaSmart",
+                            color = Color(0xFFE0E7FF), fontSize = 15.sp
+                        )
                     }
                     OutlinedButton(
                         onClick = onCerrarSesion,
@@ -70,9 +80,19 @@ fun PantallaAdmin(
                     ) { Text("Salir") }
                 }
                 Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Dato("${salas.size} salas", AzulBoton)
-                    Dato("${asientos.size} asientos reservados", Rojo)
+                    Dato("${asientos.size} reservas", Rojo)
+                    Dato("${usuarios.size} usuarios", Verde)
+                    Spacer(Modifier.weight(1f))
+                    OutlinedButton(
+                        onClick = onVerAvisos,
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) { Text("Avisos") }
                 }
             }
         }
@@ -84,76 +104,148 @@ fun PantallaAdmin(
         ) {
             Pestana("Salas", pestana == 0, Modifier.weight(1f)) { pestana = 0 }
             Pestana("Reservas", pestana == 1, Modifier.weight(1f)) { pestana = 1 }
-            Pestana("Avisos", false, Modifier.weight(1f)) { onVerAvisos() }
+            Pestana("Usuarios", pestana == 2, Modifier.weight(1f)) { pestana = 2 }
         }
 
         // ---------- CONTENIDO ----------
-        if (pestana == 0) {
-            if (salas.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay salas en la base de datos.", color = TextoGris, fontSize = 17.sp)
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(salas) { sala ->
-                        val info = Aulas[sala.nombreSala]
-                        val total = info?.asientos ?: sala.capacidad.toInt()
-                        val ocupados = porSala[sala.nombreSala]?.size ?: 0
-                        Card(
-                            shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(3.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(info?.nombre ?: sala.nombreSala, color = AzulOscuro,
-                                        fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                    Text("${sala.nombreSala}  •  ${info?.ubicacion ?: ""}",
-                                        color = TextoGris, fontSize = 14.sp)
-                                    Text(
-                                        "$ocupados de $total asientos ocupados",
-                                        color = if (ocupados >= total) Rojo else Verde,
-                                        fontSize = 15.sp, fontWeight = FontWeight.SemiBold
-                                    )
+        when (pestana) {
+            // ----- SALAS -----
+            0 -> {
+                if (salas.isEmpty()) {
+                    Vacio("No hay salas en la base de datos.")
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(salas) { sala ->
+                            val info = Aulas[sala.nombreSala]
+                            val total = info?.asientos ?: sala.capacidad.toInt()
+                            val ocupados = porSala[sala.nombreSala]?.size ?: 0
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(3.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            info?.nombre ?: sala.nombreSala, color = AzulOscuro,
+                                            fontSize = 18.sp, fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            "${sala.nombreSala}  •  ${info?.ubicacion ?: ""}",
+                                            color = TextoGris, fontSize = 14.sp
+                                        )
+                                        Text(
+                                            "$ocupados de $total asientos ocupados",
+                                            color = if (ocupados >= total) Rojo else Verde,
+                                            fontSize = 15.sp, fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                    TextButton(
+                                        onClick = { scope.launch { dao.liberar(sala.nombreSala) } },
+                                        enabled = ocupados > 0
+                                    ) { Text("Liberar todo", color = Rojo) }
                                 }
-                                TextButton(
-                                    onClick = { scope.launch { dao.liberar(sala.nombreSala) } },
-                                    enabled = ocupados > 0
-                                ) { Text("Liberar", color = Rojo) }
                             }
                         }
                     }
                 }
             }
-        } else {
-            if (porSala.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Todavía no hay reservas.", color = TextoGris, fontSize = 17.sp)
+
+            // ----- RESERVAS (con perfil de quien reservó) -----
+            1 -> {
+                if (porSala.isEmpty()) {
+                    Vacio("Todavía no hay reservas.")
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(porSala.entries.toList()) { entrada ->
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(3.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Text(
+                                        Aulas[entrada.key]?.nombre ?: entrada.key,
+                                        color = AzulOscuro,
+                                        fontSize = 18.sp, fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    entrada.value.sortedBy { it.numero }.forEach { a ->
+                                        Row(
+                                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                "Asiento ${a.numero}", color = AzulOscuro,
+                                                fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                                                modifier = Modifier.width(100.dp)
+                                            )
+                                            if (a.usuario.isBlank()) {
+                                                Text(
+                                                    "Sin registro", color = TextoGris, fontSize = 15.sp,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            } else {
+                                                PerfilUsuario(
+                                                    correo = a.usuario,
+                                                    modifier = Modifier.weight(1f),
+                                                    tamano = 38.dp
+                                                )
+                                            }
+                                            TextButton(onClick = {
+                                                scope.launch { dao.liberarAsiento(a.sala, a.numero) }
+                                            }) { Text("Liberar", color = Rojo) }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(porSala.entries.toList()) { (nombre, lista) ->
-                        Card(
-                            shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(3.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(Aulas[nombre]?.nombre ?: nombre, color = AzulOscuro,
-                                    fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "Asientos: " + lista.map { it.numero }.sorted().joinToString(", "),
-                                    color = TextoGris, fontSize = 15.sp
-                                )
+            }
+
+            // ----- USUARIOS (con perfil) -----
+            else -> {
+                if (usuarios.isEmpty()) {
+                    Vacio("Todavía no hay usuarios registrados.")
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(usuarios) { u ->
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(3.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    PerfilUsuario(
+                                        correo = u.correo,
+                                        modifier = Modifier.weight(1f),
+                                        tamano = 52.dp
+                                    )
+                                    Text(
+                                        "${porUsuario[u.correo] ?: 0} asientos",
+                                        color = AzulBoton, fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }
@@ -164,10 +256,19 @@ fun PantallaAdmin(
 }
 
 @Composable
+private fun Vacio(texto: String) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(texto, color = TextoGris, fontSize = 17.sp)
+    }
+}
+
+@Composable
 private fun Dato(texto: String, color: Color) {
     Surface(shape = RoundedCornerShape(50), color = color) {
-        Text(texto, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+        Text(
+            texto, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }
 
@@ -184,8 +285,8 @@ private fun Pestana(texto: String, activa: Boolean, modifier: Modifier, onClick:
             texto,
             color = if (activa) Color.White else AzulOscuro,
             fontSize = 16.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 12.dp).fillMaxWidth(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 12.dp).fillMaxWidth()
         )
     }
 }

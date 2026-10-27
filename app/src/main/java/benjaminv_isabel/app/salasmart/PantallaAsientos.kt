@@ -37,10 +37,10 @@ private val PisoSala = Color(0xFFE2E8F5)
 private val TextoGris = Color(0xFF475569)
 private val Madera = Color(0xFFB7791F)
 
-
 @Composable
 fun PantallaAsientos(
     nombreSala: String,
+    usuario: String,
     onVolver: () -> Unit
 ) {
     val info = Aulas[nombreSala]
@@ -295,7 +295,8 @@ fun PantallaAsientos(
                 Button(
                     onClick = {
                         scope.launch {
-                            dao.insertar(seleccionados.map { Asiento(nombreSala, it) })
+                            // Guarda cada asiento con el correo de quien reservó
+                            dao.insertar(seleccionados.map { Asiento(nombreSala, it, usuario) })
                             mensaje = "¡Reserva confirmada!"
                             seleccionados = emptySet()
                         }
