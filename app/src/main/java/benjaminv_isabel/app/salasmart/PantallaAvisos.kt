@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +29,7 @@ private val TextoGris = Color(0xFF475569)
 // avisos = lista de (título, descripción)
 @Composable
 fun PantallaAvisos(
-    avisos: List<Pair<String, AnnotatedString>>,
+    avisos: List<Pair<String, String>>,
     cargando: Boolean = false,
     error: String? = null,
     onReintentar: () -> Unit = {},
@@ -123,9 +122,7 @@ fun PantallaAvisos(
                                 Text(aviso.first, color = AzulOscuro,
                                     fontSize = 19.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(4.dp))
-
                                 Text(aviso.second, color = TextoGris, fontSize = 15.sp)
-
                             }
                         }
                     }
