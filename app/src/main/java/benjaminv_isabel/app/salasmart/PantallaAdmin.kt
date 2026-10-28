@@ -314,8 +314,8 @@ fun PantallaAdmin(
                                         }
                                     }
                                     Text(
-                                        if (a.estaDisponible == true) "Disponible" else "Ocupado",
-                                        color = if (a.estaDisponible == true) Verde else Rojo,
+                                        if (a.estaDisponible) "Disponible" else "Ocupado",
+                                        color = if (a.estaDisponible) Verde else Rojo,
                                         fontSize = 15.sp, fontWeight = FontWeight.Bold
                                     )
                                 }
