@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -134,7 +135,7 @@ class MainActivity : ComponentActivity() {
                                 avisosCargando = false
                             }
                             PantallaAvisos(
-                                avisos = avisos,
+                                avisos = avisos.map { it.first to AnnotatedString(it.second) },
                                 cargando = avisosCargando,
                                 error = avisosError,
                                 onReintentar = { recargarAvisos++ },
