@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,21 +34,31 @@ fun PantallaAdmin(
     onVerAvisos: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
-    val contexto = LocalContext.current
     val scope = rememberCoroutineScope()
-    val bd = remember { AsientosBD.obtener(contexto) }
-    val dao = remember { bd.asientoDao() }
-    val asientosLive = remember { dao.observarTodos() }
-    val usuariosLive = remember { bd.usuarioDao().observarTodos() }
 
     val salas by viewModel.todas_las_salas.observeAsState(emptyList())
-    val asientos by asientosLive.observeAsState(emptyList())
-    val usuarios by usuariosLive.observeAsState(emptyList())
+    // Datos compartidos en Firestore (reservas de todos los teléfonos y sus correos)
+    val asientos by remember { Nube.todosAsientos() }.collectAsState(initial = emptyList())
+    val usuarios by remember { Nube.usuarios() }.collectAsState(initial = emptyList())
 
     val porSala = asientos.groupBy { it.sala }
     val porUsuario = asientos.groupingBy { it.usuario }.eachCount()
 
     var pestana by remember { mutableIntStateOf(0) }
+
+    // Registro de asientos que viene de la API (ApiAsientos)
+    var apiAsientos by remember { mutableStateOf<List<ApiAsientos>?>(null) }
+    var apiError by remember { mutableStateOf<String?>(null) }
+    var apiCargando by remember { mutableStateOf(false) }
+    var recargarApi by remember { mutableIntStateOf(0) }
+    LaunchedEffect(recargarApi) {
+        apiCargando = true
+        apiError = null
+        ApiCliente.asientos()
+            .onSuccess { apiAsientos = it }
+            .onFailure { apiError = it.message ?: "Error de conexión" }
+        apiCargando = false
+    }
 
     Column(Modifier.fillMaxSize().background(Fondo)) {
 
@@ -105,6 +114,7 @@ fun PantallaAdmin(
             Pestana("Salas", pestana == 0, Modifier.weight(1f)) { pestana = 0 }
             Pestana("Reservas", pestana == 1, Modifier.weight(1f)) { pestana = 1 }
             Pestana("Usuarios", pestana == 2, Modifier.weight(1f)) { pestana = 2 }
+            Pestana("API", pestana == 3, Modifier.weight(1f)) { pestana = 3 }
         }
 
         // ---------- CONTENIDO ----------
@@ -148,7 +158,9 @@ fun PantallaAdmin(
                                         )
                                     }
                                     TextButton(
-                                        onClick = { scope.launch { dao.liberar(sala.nombreSala) } },
+                                        onClick = {
+                                            scope.launch { runCatching { Nube.liberarSala(sala.nombreSala) } }
+                                        },
                                         enabled = ocupados > 0
                                     ) { Text("Liberar todo", color = Rojo) }
                                 }
@@ -204,7 +216,9 @@ fun PantallaAdmin(
                                                 )
                                             }
                                             TextButton(onClick = {
-                                                scope.launch { dao.liberarAsiento(a.sala, a.numero) }
+                                                scope.launch {
+                                                    runCatching { Nube.liberarAsiento(a.sala, a.numero) }
+                                                }
                                             }) { Text("Liberar", color = Rojo) }
                                         }
                                     }
@@ -216,7 +230,7 @@ fun PantallaAdmin(
             }
 
             // ----- USUARIOS (con perfil) -----
-            else -> {
+            2 -> {
                 if (usuarios.isEmpty()) {
                     Vacio("Todavía no hay usuarios registrados.")
                 } else {
@@ -244,6 +258,65 @@ fun PantallaAdmin(
                                         "${porUsuario[u.correo] ?: 0} asientos",
                                         color = AzulBoton, fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ----- API (registro de asientos) -----
+            else -> {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Registro de asientos (API)", color = AzulOscuro,
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = { recargarApi++ }) { Text("Actualizar", color = AzulBoton) }
+                }
+                when {
+                    apiCargando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = AzulBoton)
+                    }
+                    apiError != null -> Vacio("No se pudo leer la API: $apiError")
+                    apiAsientos.isNullOrEmpty() -> Vacio("La API no tiene registros.")
+                    else -> LazyColumn(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(apiAsientos.orEmpty()) { a ->
+                            Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(3.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            "Asiento ${a.numeroAsiento}", color = AzulOscuro,
+                                            fontSize = 17.sp, fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            a.reservadoPor?.let { "Reservado por ${it.nombre}" } ?: "Sin reserva",
+                                            color = TextoGris, fontSize = 14.sp
+                                        )
+                                        if (a.fechaReserva != null) {
+                                            Text("Fecha: ${a.fechaReserva}", color = TextoGris, fontSize = 14.sp)
+                                        }
+                                    }
+                                    Text(
+                                        if (a.estaDisponible) "Disponible" else "Ocupado",
+                                        color = if (a.estaDisponible) Verde else Rojo,
+                                        fontSize = 15.sp, fontWeight = FontWeight.Bold
                                     )
                                 }
                             }

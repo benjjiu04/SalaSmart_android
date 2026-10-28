@@ -1,10 +1,7 @@
 package benjaminv_isabel.app.salasmart
 
-import kotlinx.serialization.json.Json
-
 /**
  * clase donde están los metodos para obtener, eliminar, y crear datos en las apis.
- *
  */
 class DatosApiAsientos{
 
@@ -15,15 +12,14 @@ class DatosApiAsientos{
 
       var urlFiltro = URL
       if (condicion != null && valorCondicion != null){
-        urlFiltro = "?$condicion=$valorCondicion"
+        // CORREGIDO: antes quedaba solo "?campo=valor" sin la URL base.
+        urlFiltro = "$URL?$condicion=$valorCondicion"
       }
 
       val peticionGet = PeticionHttp.get(urlFiltro)
-      //debe regresar una lista cuando en el url se pone el '?'
-      val dataApi = Json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
 
       if (peticionGet.estatusPeticion.valor in 200..299) {
-        return dataApi
+        return JsonApi.json.decodeFromString<List<ApiAsientos>>(peticionGet.respuestaBody)
       }
 
       return null
@@ -36,10 +32,8 @@ class DatosApiAsientos{
     }
 
     fun eliminarDatosApiAsientos(id: Long): PeticionHttp.RespuestaHttp{
-
-      val urlFiltro = "$URL/$id"
-      return PeticionHttp.delete(urlFiltro, id)
-
+      // CORREGIDO: PeticionHttp.delete ya agrega "/$id", antes quedaba ".../id/id".
+      return PeticionHttp.delete(URL, id)
     }
 
   }

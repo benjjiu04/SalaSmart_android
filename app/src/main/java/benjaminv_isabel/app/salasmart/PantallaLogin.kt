@@ -15,10 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -26,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.util.TableInfo
 import kotlinx.coroutines.launch
 
 private val AzulOscuro = Color(0xFF0B1F4D)
@@ -37,9 +34,8 @@ private val Fondo = Color(0xFFF1F5FF)
 private val BordeCampo = Color(0xFFD6E0F5)
 private val TextoGris = Color(0xFF64748B)
 
-// Cuenta de administrador (solo para la demo del curso)
+// Correo del administrador. Su cuenta se crea a mano en Firebase Console → Authentication.
 private const val ADMIN_CORREO = "admin@salasmart.cl"
-private const val ADMIN_CLAVE = "admin123"
 
 @Composable
 fun PantallaLogin(
@@ -48,8 +44,6 @@ fun PantallaLogin(
     onAdminLogin: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
-    val contexto = LocalContext.current
-    val usuarioDao = remember { AsientosBD.obtener(contexto).usuarioDao() }
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -65,25 +59,25 @@ fun PantallaLogin(
 
     Column(
         modifier = Modifier
-          .fillMaxSize()
-          .background(Fondo)
-          .verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .background(Fondo)
+            .verticalScroll(rememberScrollState())
     ) {
         // ---------- ENCABEZADO ----------
         Box(
             modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(bottomStart = 56.dp, bottomEnd = 56.dp))
-              .background(Brush.verticalGradient(listOf(AzulOscuro, Azul, AzulBoton)))
-              .padding(top = 48.dp, bottom = 80.dp),
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(bottomStart = 56.dp, bottomEnd = 56.dp))
+                .background(Brush.verticalGradient(listOf(AzulOscuro, Azul, AzulBoton)))
+                .padding(top = 48.dp, bottom = 80.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                      .size(110.dp)
-                      .clip(CircleShape)
-                      .background(Brush.linearGradient(listOf(Celeste, AzulBoton))),
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(Celeste, AzulBoton))),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("💺", fontSize = 56.sp)
@@ -114,9 +108,9 @@ fun PantallaLogin(
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(10.dp),
             modifier = Modifier
-              .fillMaxWidth()
-              .padding(horizontal = 20.dp)
-              .offset(y = (-48).dp)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .offset(y = (-48).dp)
         ) {
             Column(Modifier.padding(24.dp)) {
                 Text(
@@ -167,9 +161,9 @@ fun PantallaLogin(
                             if (verPassword) "🙈" else "👁",
                             fontSize = 20.sp,
                             modifier = Modifier
-                              .clip(CircleShape)
-                              .clickable { verPassword = !verPassword }
-                              .padding(8.dp)
+                                .clip(CircleShape)
+                                .clickable { verPassword = !verPassword }
+                                .padding(8.dp)
                         )
                     },
                     visualTransformation = transformacion,
@@ -213,19 +207,21 @@ fun PantallaLogin(
 
                 if (error.isNotEmpty()) {
                     //contenedor del texto de error, centrado.
-                    Column(modifier = Modifier.fillMaxWidth(),
-                      horizontalAlignment = Alignment.CenterHorizontally,
-                      verticalArrangement = Arrangement.Center) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
 
                         Spacer(Modifier.height(14.dp))
                         Text(
-                          error,
-                          color = Color(0xFFDC2626),
-                          fontSize = 14.sp,
-                          fontWeight = FontWeight.Bold,
-                          textAlign = TextAlign.End
+                            error,
+                            color = Color(0xFFDC2626),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.End
                         )
-                      }
+                    }
                 }
 
                 Spacer(Modifier.height(20.dp))
@@ -244,16 +240,20 @@ fun PantallaLogin(
                                 error = "La contraseña debe tener al menos 6 caracteres"
                             esRegistro && password != confirmar ->
                                 error = "Las contraseñas no coinciden"
-                            // Administrador
-                            !esRegistro && correo == ADMIN_CORREO && password == ADMIN_CLAVE ->
-                                onAdminLogin()
+                            esRegistro && correo == ADMIN_CORREO ->
+                                error = "Ese correo está reservado"
                             else -> scope.launch {
                                 cargando = true
                                 val problema = if (esRegistro)
-                                    Cuentas.registrar(usuarioDao, correo, password)
+                                    Nube.registrar(correo, password)
                                 else
-                                    Cuentas.iniciar(usuarioDao, correo, password)
-                                if (problema == null) onLoginSuccess(correo) else error = problema
+                                    Nube.iniciar(correo, password)
+                                if (problema == null) {
+                                    // El administrador entra por esta misma pantalla
+                                    if (correo == ADMIN_CORREO) onAdminLogin() else onLoginSuccess(correo)
+                                } else {
+                                    error = problema
+                                }
                                 cargando = false
                             }
                         }
@@ -262,8 +262,8 @@ fun PantallaLogin(
                     shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulBoton),
                     modifier = Modifier
-                      .fillMaxWidth()
-                      .height(58.dp)
+                        .fillMaxWidth()
+                        .height(58.dp)
                 ) {
                     Text(
                         if (esRegistro) "Crear cuenta  →" else "Iniciar sesión  →",
@@ -315,8 +315,8 @@ fun PantallaLogin(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                          .clickable { esRegistro = !esRegistro; error = "" }
-                          .padding(vertical = 4.dp)
+                            .clickable { esRegistro = !esRegistro; error = "" }
+                            .padding(vertical = 4.dp)
                     )
                 }
             }
@@ -325,9 +325,9 @@ fun PantallaLogin(
         // ---------- PIE ----------
         Column(
             modifier = Modifier
-              .fillMaxWidth()
-              .offset(y = (-24).dp)
-              .padding(bottom = 24.dp),
+                .fillMaxWidth()
+                .offset(y = (-24).dp)
+                .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("🎓", fontSize = 30.sp)

@@ -2,7 +2,8 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
   kotlin("plugin.serialization") version "2.4.21"
-  id("com.google.devtools.ksp") //necesario para usar "room"
+  id("com.google.devtools.ksp")
+  id("com.google.gms.google-services")
 }
 
 android {
@@ -42,7 +43,7 @@ dependencies {
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.compose.material3)
 
-  //implementa la dependencia "room"
+  // Room
   val room_version = "2.8.4"
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
   implementation("com.squareup.okhttp3:okhttp:5.5.1")
@@ -59,6 +60,12 @@ dependencies {
   implementation("androidx.navigation:navigation-compose:2.8.5")
   implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
   implementation("androidx.compose.runtime:runtime")
+
+  // Firebase (BoM 34.0.0: compatible con tu versión de Kotlin)
+  implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+  implementation("com.google.firebase:firebase-auth")
+  implementation("com.google.firebase:firebase-firestore")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
   testImplementation(libs.junit)
   androidTestImplementation(platform(libs.androidx.compose.bom))

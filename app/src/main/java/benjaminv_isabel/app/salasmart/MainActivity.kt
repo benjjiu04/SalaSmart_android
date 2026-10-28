@@ -41,14 +41,11 @@ class MainActivity : ComponentActivity() {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var correoActual by remember { mutableStateOf("") }
 
-                // TODO: reemplazar por los datos reales de ApiAvisos de tu compañero
-                val avisos = remember {
-                    listOf(
-                        "Sala de Estudio en mantenimiento" to "Estará cerrada el viernes por la tarde.",
-                        "Nuevo horario de atención" to "El campus abre desde las 7:30 de lunes a viernes.",
-                        "Auditorio Central reservado" to "El miércoles habrá una charla abierta de 10:00 a 12:00."
-                    )
-                }
+                // Avisos que vienen de la API (ApiAvisos)
+                var avisos by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+                var avisosCargando by remember { mutableStateOf(false) }
+                var avisosError by remember { mutableStateOf<String?>(null) }
+                var recargarAvisos by remember { mutableIntStateOf(0) }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
@@ -62,6 +59,7 @@ class MainActivity : ComponentActivity() {
                                 correoActual = correoActual,
                                 onIrALogin = { navController.navigate(Rutas.LOGIN) },
                                 onCerrarSesion = {
+                                    Nube.cerrarSesion()
                                     isLoggedIn = false
                                     correoActual = ""
                                 },
@@ -105,6 +103,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = taskViewModel,
                                 onVerAvisos = { navController.navigate(Rutas.AVISOS) },
                                 onCerrarSesion = {
+                                    Nube.cerrarSesion()
                                     navController.navigate(Rutas.SALAS) {
                                         popUpTo(Rutas.SALAS) { inclusive = true }
                                     }
@@ -113,8 +112,32 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Rutas.AVISOS) {
+                            // Cada vez que se abre la pantalla (o se pulsa Reintentar) se consulta la API
+                            LaunchedEffect(recargarAvisos) {
+                                avisosCargando = true
+                                avisosError = null
+                                ApiCliente.avisos()
+                                    .onSuccess { lista ->
+                                        avisos = lista
+                                            .filter { it.mensaje != null || !it.estaDisponible }
+                                            .map { a ->
+                                                val titulo = if (a.estaDisponible) "Servicio disponible"
+                                                else "Servicio no disponible"
+                                                val fechas = if (a.fechaAviso != null)
+                                                    "\nDesde ${a.fechaAviso}" +
+                                                            (a.fechaTermino?.let { " hasta $it" } ?: "")
+                                                else ""
+                                                titulo to ((a.mensaje ?: "Sin novedades") + fechas)
+                                            }
+                                    }
+                                    .onFailure { avisosError = it.message ?: "Error de conexión" }
+                                avisosCargando = false
+                            }
                             PantallaAvisos(
                                 avisos = avisos,
+                                cargando = avisosCargando,
+                                error = avisosError,
+                                onReintentar = { recargarAvisos++ },
                                 onVolver = { navController.popBackStack() }
                             )
                         }

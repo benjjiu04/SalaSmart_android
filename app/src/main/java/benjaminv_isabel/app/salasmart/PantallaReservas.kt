@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,10 +47,8 @@ fun PantallaReservas(
 ) {
     val listaSalas by viewModel.todas_las_salas.observeAsState(initial = emptyList())
 
-    // Asientos reservados de todas las salas (Room, se actualiza solo)
-    val contexto = LocalContext.current
-    val asientosLive = remember { AsientosBD.obtener(contexto).asientoDao().observarTodos() }
-    val todosAsientos by asientosLive.observeAsState(initial = emptyList())
+    // Asientos reservados de todas las salas (Firestore, se actualiza solo en todos los teléfonos)
+    val todosAsientos by remember { Nube.todosAsientos() }.collectAsState(initial = emptyList())
     val ocupadosPorSala = todosAsientos.groupingBy { it.sala }.eachCount()
 
     fun totalDe(s: Sala): Int = Aulas[s.nombreSala]?.asientos ?: s.capacidad.toInt()

@@ -12,14 +12,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,12 +46,12 @@ fun PantallaAsientos(
     val totalAsientos = info.asientos
 
     val scope = rememberCoroutineScope()
-    val contexto = LocalContext.current
-    // Base de datos propia de asientos (no toca SmartSalaBD)
-    val dao = remember { AsientosBD.obtener(contexto).asientoDao() }
 
-    // Asientos ocupados guardados en Room (se actualiza solo)
-    val reservados = dao.observar(nombreSala).observeAsState(emptyList()).value.toSet()
+    // Asientos ocupados en Firestore (se actualizan solos en todos los teléfonos)
+    val asientosSala by remember(nombreSala) { Nube.asientos(nombreSala) }
+        .collectAsState(initial = emptyList())
+    val reservados = asientosSala.map { it.numero }.toSet()
+
     var seleccionados by remember { mutableStateOf(setOf<Int>()) }
     var mensaje by remember { mutableStateOf("") }
 
@@ -295,10 +293,21 @@ fun PantallaAsientos(
                 Button(
                     onClick = {
                         scope.launch {
-                            // Guarda cada asiento con el correo de quien reservó
-                            dao.insertar(seleccionados.map { Asiento(nombreSala, it, usuario) })
-                            mensaje = "¡Reserva confirmada!"
-                            seleccionados = emptySet()
+                            try {
+                                val elegidos = seleccionados
+                                val tomados = Nube.reservar(nombreSala, elegidos, usuario)
+                                if (tomados.isEmpty()) {
+                                    mensaje = "¡Reserva confirmada!"
+                                    seleccionados = emptySet()
+                                    // También se registra en la API de asientos (si falla, no afecta la reserva)
+                                    ApiCliente.registrarReserva(nombreSala, elegidos, usuario)
+                                } else {
+                                    mensaje = "Ya reservaron: ${tomados.sorted().joinToString(", ")}"
+                                    seleccionados = seleccionados - tomados
+                                }
+                            } catch (e: Exception) {
+                                mensaje = "No se pudo reservar. Revisa tu conexión."
+                            }
                         }
                     },
                     enabled = seleccionados.isNotEmpty(),

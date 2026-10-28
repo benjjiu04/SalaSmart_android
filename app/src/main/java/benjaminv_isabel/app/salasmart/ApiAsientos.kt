@@ -1,14 +1,7 @@
 package benjaminv_isabel.app.salasmart
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Serializable
 data class DatosUsuario(
@@ -21,9 +14,9 @@ data class ApiAsientos(
   val estaDisponible: Boolean,
   val reservadoPor: DatosUsuario?,
 
-
   @Serializable(LocalDateSerializer::class)
   val fechaReserva: LocalDate?,
 
-  val id: Long? = null,
+  // La API devuelve el id como texto ("1", "2"...), por eso es String y no Long.
+  val id: String? = null,
 )

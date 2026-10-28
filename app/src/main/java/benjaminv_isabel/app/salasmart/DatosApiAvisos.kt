@@ -1,7 +1,5 @@
 package benjaminv_isabel.app.salasmart
 
-import kotlinx.serialization.json.Json
-
 class DatosApiAvisos {
 
   companion object{
@@ -11,14 +9,14 @@ class DatosApiAvisos {
 
       var urlFiltro = URL
       if (condicion != null && valorCondicion != null){
-        urlFiltro = "?$condicion=$valorCondicion"
+        // CORREGIDO: antes quedaba solo "?campo=valor" sin la URL base.
+        urlFiltro = "$URL?$condicion=$valorCondicion"
       }
 
       val peticionGet = PeticionHttp.get(urlFiltro)
-      val dataApi = Json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
 
       if (peticionGet.estatusPeticion.valor in 200..299) {
-        return dataApi
+        return JsonApi.json.decodeFromString<List<ApiAvisos>>(peticionGet.respuestaBody)
       }
 
       return null
@@ -31,10 +29,8 @@ class DatosApiAvisos {
     }
 
     fun eliminarDatosApiAvisos(id: Long): PeticionHttp.RespuestaHttp{
-
-      val urlFiltro = "$URL/$id"
-      return PeticionHttp.delete(urlFiltro, id)
-
+      // CORREGIDO: PeticionHttp.delete ya agrega "/$id", antes quedaba ".../id/id".
+      return PeticionHttp.delete(URL, id)
     }
 
   }
