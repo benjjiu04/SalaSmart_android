@@ -5,17 +5,17 @@ import java.time.LocalDate
 
 @Serializable
 data class DatosUsuario(
-  val nombre: String,
-  val edad: Int
+  val nombre: String? = null,
+  val edad: Int? = null
 )
 @Serializable
 data class ApiAsientos(
-  val numeroAsiento: String,
-  val estaDisponible: Boolean,
-  val reservadoPor: DatosUsuario?,
+  val numeroAsiento: String? = null,
+  val estaDisponible: Boolean? = null,
+  val reservadoPor: DatosUsuario? = null,
 
   @Serializable(LocalDateSerializer::class)
-  val fechaReserva: LocalDate?,
+  val fechaReserva: LocalDate? = null,
 
   // La API devuelve el id como texto ("1", "2"...), por eso es String y no Long.
   val id: String? = null,

@@ -1,5 +1,6 @@
 package benjaminv_isabel.app.salasmart
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,9 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 
 private val AzulOscuro = Color(0xFF0B1F4D)
 private val Azul = Color(0xFF1E3A8A)
@@ -27,7 +30,7 @@ private val TextoGris = Color(0xFF475569)
 // avisos = lista de (título, descripción)
 @Composable
 fun PantallaAvisos(
-    avisos: List<Pair<String, String>>,
+    avisos: List<Pair<String, AnnotatedString>>,
     cargando: Boolean = false,
     error: String? = null,
     onReintentar: () -> Unit = {},
@@ -120,7 +123,9 @@ fun PantallaAvisos(
                                 Text(aviso.first, color = AzulOscuro,
                                     fontSize = 19.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(4.dp))
+
                                 Text(aviso.second, color = TextoGris, fontSize = 15.sp)
+
                             }
                         }
                     }
